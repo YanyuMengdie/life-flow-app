@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Moon, Sun, Plus, TrendingUp } from 'lucide-react';
-import { PageHeader } from '../components/PageHeader';
 import { useSleepRecords } from '../stores/useStore';
 import { formatDate } from '../utils/storage';
+
+const BUNNY_IMAGE = "https://lh3.googleusercontent.com/aida-public/AB6AXuAShjof-e5yAk5fIURjjKL0v93uTZahA_oRqopBzvQTXhLNA6j33Hg3Idn7Itbnb8VDK6NHI75e_eC2cwWI8E-gV_KPH0FgJ87PJ1pd_AmuSUk6qljFv1-3oYyP-5wFIMm1gpAdbv3CsH_pO09cQTsHdRC3_0bMA29zGzxOcYzdhbu_Rg_VyeWgtqY2HN7uAdwf6me6HWhGa4Y8FboZ6vE5P6FcCThnoLImVgaZsMJDhyczkyoV0X583WoGjfIHVA7J-b33WM3aIi4";
 
 export function SleepPage() {
   const { records, addRecord, updateRecord, getTodayRecord, getWeekRecords } = useSleepRecords();
@@ -11,7 +11,6 @@ export function SleepPage() {
     bedTime: '',
     wakeTime: '',
     quality: 3 as 1 | 2 | 3 | 4 | 5,
-    notes: '',
   });
 
   const today = formatDate();
@@ -24,7 +23,6 @@ export function SleepPage() {
       bedTime: newRecord.bedTime ? new Date(`${today}T${newRecord.bedTime}`).toISOString() : undefined,
       wakeTime: newRecord.wakeTime ? new Date(`${today}T${newRecord.wakeTime}`).toISOString() : undefined,
       quality: newRecord.quality,
-      notes: newRecord.notes || undefined,
     };
 
     if (todayRecord) {
@@ -35,228 +33,224 @@ export function SleepPage() {
     setShowAdd(false);
   };
 
-  // 计算周统计
-  const weekStats = (() => {
-    if (weekRecords.length === 0) return null;
-    
-    let totalSleep = 0;
-    let totalQuality = 0;
-    let count = 0;
+  // Calculate sleep duration
+  const getSleepDuration = (bedTime?: string, wakeTime?: string) => {
+    if (!bedTime || !wakeTime) return null;
+    const bed = new Date(bedTime);
+    const wake = new Date(wakeTime);
+    let diff = wake.getTime() - bed.getTime();
+    if (diff < 0) diff += 24 * 60 * 60 * 1000;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return { hours, minutes, total: diff };
+  };
 
-    weekRecords.forEach(r => {
-      if (r.bedTime && r.wakeTime) {
-        const bed = new Date(r.bedTime);
-        const wake = new Date(r.wakeTime);
-        // 如果睡觉时间晚于起床时间，说明是跨夜
-        let diff = wake.getTime() - bed.getTime();
-        if (diff < 0) diff += 24 * 60 * 60 * 1000;
-        totalSleep += diff;
-        count++;
-      }
-      if (r.quality) totalQuality += r.quality;
-    });
+  const todaySleep = todayRecord ? getSleepDuration(todayRecord.bedTime, todayRecord.wakeTime) : null;
 
-    return {
-      avgSleep: count > 0 ? Math.round(totalSleep / count / 1000 / 60) : 0, // 分钟
-      avgQuality: weekRecords.length > 0 ? (totalQuality / weekRecords.length).toFixed(1) : 0,
-      recordCount: weekRecords.length,
-    };
+  // Calculate week average
+  const weekAvg = (() => {
+    const validRecords = weekRecords.filter(r => r.bedTime && r.wakeTime);
+    if (validRecords.length === 0) return null;
+    const total = validRecords.reduce((acc, r) => {
+      const duration = getSleepDuration(r.bedTime, r.wakeTime);
+      return acc + (duration?.total || 0);
+    }, 0);
+    const avgMs = total / validRecords.length;
+    return Math.round(avgMs / (1000 * 60 * 60) * 10) / 10;
   })();
 
-  const qualityEmoji = ['😫', '😔', '😐', '😊', '😴'];
+  const qualityEmoji = ['😫', '🥱', '😊', '🤩', '😴'];
+  const qualitySelected = newRecord.quality;
 
   return (
-    <div className="p-4 pb-24">
-      <PageHeader 
-        title="睡眠记录" 
-        subtitle="保持良好作息 💤"
-        action={
-          !todayRecord && (
-            <button
-              onClick={() => setShowAdd(true)}
-              className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          )
-        }
-      />
+    <div className="min-h-screen bg-[#fcfafc] pb-28">
+      {/* Header */}
+      <div className="flex items-center p-6 pb-2 justify-between sticky top-0 bg-[#fcfafc]/80 ios-blur z-10">
+        <div className="flex w-10 h-10 shrink-0 items-center justify-center rounded-full bg-white soft-shadow cursor-pointer">
+          <span className="material-symbols-outlined text-lg text-[#89616b]">chevron_left</span>
+        </div>
+        <h2 className="text-lg font-bold leading-tight tracking-tight flex-1 text-center">Sleep Tracker</h2>
+        <div className="flex w-10 h-10 items-center justify-center rounded-full bg-white soft-shadow cursor-pointer">
+          <span className="material-symbols-outlined text-lg text-[#89616b]">settings</span>
+        </div>
+      </div>
 
-      {/* 今日记录卡片 */}
-      {todayRecord ? (
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white mb-6">
-          <h3 className="text-sm opacity-80 mb-2">今日记录</h3>
-          <div className="flex items-center gap-6">
-            {todayRecord.bedTime && (
-              <div className="flex items-center gap-2">
-                <Moon className="w-5 h-5" />
-                <span className="text-lg font-medium">
-                  {new Date(todayRecord.bedTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            )}
-            {todayRecord.wakeTime && (
-              <div className="flex items-center gap-2">
-                <Sun className="w-5 h-5" />
-                <span className="text-lg font-medium">
-                  {new Date(todayRecord.wakeTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            )}
+      {/* Hero Section */}
+      <div className="flex p-4 flex-col items-center">
+        <div className="relative w-48 h-48 mb-6 flex items-center justify-center">
+          {/* Background blur */}
+          <div className="absolute inset-0 bg-[#e8e7ff] rounded-full blur-3xl opacity-60" />
+          {/* Bunny illustration */}
+          <div 
+            className="z-10 bg-center bg-no-repeat aspect-square bg-contain w-full"
+            style={{ backgroundImage: `url('${BUNNY_IMAGE}')` }}
+          />
+        </div>
+        <div className="flex flex-col items-center justify-center text-center space-y-1">
+          <p className="text-2xl font-bold tracking-tight">
+            {todaySleep ? 'Sweet dreams!' : 'Ready to track?'}
+          </p>
+          <p className="text-[#89616b] text-base">
+            {todaySleep 
+              ? <>You slept for <span className="text-[#f0426e] font-semibold">{todaySleep.hours}h {todaySleep.minutes}m</span> last night</>
+              : 'Record your sleep to see insights'
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* Bedtime & Wake up Cards */}
+      <div className="grid grid-cols-2 gap-4 px-6 py-4">
+        <div className="flex flex-col gap-3 rounded-xl bg-white p-5 soft-shadow border border-gray-50">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#e8e7ff] text-[#f0426e]">
+            <span className="material-symbols-outlined">dark_mode</span>
           </div>
-          {todayRecord.quality && (
-            <div className="mt-3">
-              <span className="text-2xl">{qualityEmoji[todayRecord.quality - 1]}</span>
-              <span className="ml-2 text-sm opacity-80">睡眠质量</span>
-            </div>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="text-lg font-bold">
+              {todayRecord?.bedTime 
+                ? new Date(todayRecord.bedTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+                : '--:--'
+              }
+            </h2>
+            <p className="text-[#89616b] text-xs font-medium uppercase tracking-wider">Bedtime</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 rounded-xl bg-white p-5 soft-shadow border border-gray-50">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 text-orange-500">
+            <span className="material-symbols-outlined">light_mode</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="text-lg font-bold">
+              {todayRecord?.wakeTime 
+                ? new Date(todayRecord.wakeTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+                : '--:--'
+              }
+            </h2>
+            <p className="text-[#89616b] text-xs font-medium uppercase tracking-wider">Wake up</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly Stats */}
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold tracking-tight">Weekly Stats</h3>
+          {weekAvg && (
+            <span className="text-xs font-semibold text-[#f0426e] bg-[#f0426e]/10 px-2 py-1 rounded-full italic">
+              Average: {weekAvg}h
+            </span>
           )}
-          <button
-            onClick={() => {
-              setNewRecord({
-                bedTime: todayRecord.bedTime ? new Date(todayRecord.bedTime).toTimeString().slice(0, 5) : '',
-                wakeTime: todayRecord.wakeTime ? new Date(todayRecord.wakeTime).toTimeString().slice(0, 5) : '',
-                quality: todayRecord.quality || 3,
-                notes: todayRecord.notes || '',
-              });
-              setShowAdd(true);
-            }}
-            className="mt-4 text-sm underline opacity-80 hover:opacity-100"
-          >
-            编辑记录
-          </button>
         </div>
-      ) : (
-        <div 
-          onClick={() => setShowAdd(true)}
-          className="bg-gray-100 rounded-2xl p-6 text-center cursor-pointer hover:bg-gray-200 mb-6"
-        >
-          <p className="text-gray-500">今天还没有记录</p>
-          <p className="text-sm text-gray-400 mt-1">点击添加睡眠记录</p>
-        </div>
-      )}
-
-      {/* 添加/编辑表单 */}
-      {showAdd && (
-        <div className="bg-white rounded-xl shadow-lg p-4 mb-6 border border-gray-100">
-          <h3 className="font-medium mb-4">记录睡眠</h3>
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-                <Moon className="w-3 h-3" /> 睡觉时间
-              </label>
-              <input
-                type="time"
-                value={newRecord.bedTime}
-                onChange={e => setNewRecord(prev => ({ ...prev, bedTime: e.target.value }))}
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-                <Sun className="w-3 h-3" /> 起床时间
-              </label>
-              <input
-                type="time"
-                value={newRecord.wakeTime}
-                onChange={e => setNewRecord(prev => ({ ...prev, wakeTime: e.target.value }))}
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="text-xs text-gray-500 block mb-2">睡眠质量</label>
-            <div className="flex justify-between">
-              {[1, 2, 3, 4, 5].map(q => (
-                <button
-                  key={q}
-                  onClick={() => setNewRecord(prev => ({ ...prev, quality: q as 1|2|3|4|5 }))}
-                  className={`text-2xl p-2 rounded-lg transition-transform ${
-                    newRecord.quality === q ? 'scale-125 bg-indigo-100' : 'opacity-50 hover:opacity-100'
+        <div className="bg-white rounded-xl p-5 soft-shadow flex items-end justify-between h-40 gap-2 border border-gray-50">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => {
+            const record = weekRecords[i];
+            const duration = record ? getSleepDuration(record.bedTime, record.wakeTime) : null;
+            const height = duration ? Math.min((duration.hours / 10) * 100, 100) : 20;
+            const isToday = i === new Date().getDay() - 1;
+            
+            return (
+              <div key={day} className="flex flex-col items-center flex-1 gap-2">
+                <div 
+                  className={`w-full rounded-full relative overflow-hidden transition-all ${
+                    isToday ? 'bg-[#f0426e] shadow-lg shadow-[#f0426e]/30' : 'bg-[#e8e7ff]'
                   }`}
-                >
-                  {qualityEmoji[q - 1]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="text-xs text-gray-500 block mb-1">备注（可选）</label>
-            <input
-              type="text"
-              value={newRecord.notes}
-              onChange={e => setNewRecord(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="比如：做了个好梦..."
-              className="w-full p-2 border rounded-lg text-sm"
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowAdd(false)}
-              className="flex-1 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              取消
-            </button>
-            <button
-              onClick={handleSave}
-              className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              保存
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 周报 */}
-      {weekStats && weekStats.recordCount > 0 && (
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-medium">本周统计</h3>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-indigo-600">
-                {Math.floor(weekStats.avgSleep / 60)}h {weekStats.avgSleep % 60}m
+                  style={{ height: `${height}%` }}
+                />
+                <span className={`text-[10px] font-bold uppercase ${isToday ? 'text-[#f0426e]' : 'text-gray-400'}`}>
+                  {day}
+                </span>
               </div>
-              <div className="text-xs text-gray-500">平均睡眠</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-indigo-600">{weekStats.avgQuality}</div>
-              <div className="text-xs text-gray-500">平均质量</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-indigo-600">{weekStats.recordCount}</div>
-              <div className="text-xs text-gray-500">记录天数</div>
-            </div>
-          </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* 历史记录 */}
-      {records.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">历史记录</h3>
-          <div className="space-y-2">
-            {records.slice(-7).reverse().map(record => (
-              <div key={record.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                <span className="text-gray-600">{record.date}</span>
-                <div className="flex items-center gap-3">
-                  {record.quality && <span>{qualityEmoji[record.quality - 1]}</span>}
-                  {record.bedTime && record.wakeTime && (
-                    <span className="text-gray-500">
-                      {new Date(record.bedTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                      {' → '}
-                      {new Date(record.wakeTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  )}
-                </div>
+      {/* Sleep Quality */}
+      <div className="px-6 pt-4">
+        <h3 className="text-lg font-bold tracking-tight mb-3">How do you feel today?</h3>
+        <div className="flex items-center justify-between bg-white p-2 rounded-2xl soft-shadow border border-gray-50">
+          {[1, 2, 3, 4, 5].map(q => (
+            <button
+              key={q}
+              onClick={() => setNewRecord(prev => ({ ...prev, quality: q as 1|2|3|4|5 }))}
+              className={`flex flex-1 flex-col items-center justify-center py-3 rounded-xl transition-colors ${
+                qualitySelected === q ? 'bg-[#e8e7ff]' : 'hover:bg-[#e8e7ff]/50'
+              }`}
+            >
+              <span className={`text-2xl ${qualitySelected === q ? '' : 'grayscale'}`}>
+                {qualityEmoji[q - 1]}
+              </span>
+              {qualitySelected === q && <div className="w-1 h-1 bg-[#f0426e] rounded-full mt-1" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Quote */}
+      <div className="mt-6 px-6 py-4 text-center">
+        <p className="text-xs text-gray-400 font-medium italic">
+          "Rest is the best medicine. Sleep well tonight." 🌙
+        </p>
+      </div>
+
+      {/* Action Button */}
+      <div className="fixed bottom-24 left-0 right-0 px-6">
+        <button
+          onClick={() => setShowAdd(true)}
+          className="w-full bg-[#f0426e] text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-[#f0426e]/25 flex items-center justify-center gap-3"
+        >
+          <span className="material-symbols-outlined">bedtime</span>
+          {todayRecord ? 'Update Record' : 'Start Tracking'}
+        </button>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/20 z-50 flex items-end justify-center" onClick={() => setShowAdd(false)}>
+          <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-6 text-center">Record Sleep 🌙</h3>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="text-xs text-[#89616b] flex items-center gap-1 mb-2">
+                  <span className="material-symbols-outlined text-sm text-[#f0426e]">dark_mode</span>
+                  Bedtime
+                </label>
+                <input
+                  type="time"
+                  value={newRecord.bedTime}
+                  onChange={e => setNewRecord(prev => ({ ...prev, bedTime: e.target.value }))}
+                  className="w-full p-3 border border-[#F5F2E8] rounded-xl text-center text-lg font-semibold"
+                />
               </div>
-            ))}
+              <div>
+                <label className="text-xs text-[#89616b] flex items-center gap-1 mb-2">
+                  <span className="material-symbols-outlined text-sm text-orange-500">light_mode</span>
+                  Wake up
+                </label>
+                <input
+                  type="time"
+                  value={newRecord.wakeTime}
+                  onChange={e => setNewRecord(prev => ({ ...prev, wakeTime: e.target.value }))}
+                  className="w-full p-3 border border-[#F5F2E8] rounded-xl text-center text-lg font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAdd(false)}
+                className="flex-1 py-3 text-[#89616b] hover:bg-[#F5F2E8] rounded-xl font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 py-3 bg-[#f0426e] text-white rounded-xl font-bold shadow-lg shadow-[#f0426e]/30"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
       )}

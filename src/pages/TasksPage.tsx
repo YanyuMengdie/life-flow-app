@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { Plus, Clock, Calendar, Check, Trash2 } from 'lucide-react';
-import { PageHeader } from '../components/PageHeader';
 import { useTasks } from '../stores/useStore';
 import type { Task } from '../types';
 
 export function TasksPage() {
-  const { incompleteTasks, completedTasks, addTask, toggleComplete, deleteTask } = useTasks();
+  const { tasks, incompleteTasks, completedTasks, addTask, toggleComplete, deleteTask } = useTasks();
   const [showAdd, setShowAdd] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -26,168 +24,206 @@ export function TasksPage() {
     setShowAdd(false);
   };
 
-  const priorityColors = {
-    low: 'bg-gray-100 text-gray-600',
-    medium: 'bg-yellow-100 text-yellow-700',
-    high: 'bg-red-100 text-red-700',
+  const progress = tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0;
+
+  const priorityStyles = {
+    low: 'bg-[#E6E6FA] text-[#818cf8]',
+    medium: 'bg-[#FDE2E4] text-[#f0426e]',
+    high: 'bg-[#f0426e]/10 text-[#f0426e]',
+  };
+
+  const formatMinutes = (min: number) => {
+    if (min >= 60) return `${Math.floor(min / 60)}h ${min % 60 > 0 ? `${min % 60}m` : ''}`;
+    return `${min}m`;
   };
 
   return (
-    <div className="p-4 pb-24">
-      <PageHeader 
-        title="任务清单" 
-        subtitle={`${incompleteTasks.length} 个待完成`}
-        action={
-          <button
-            onClick={() => setShowAdd(true)}
-            className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
-        }
-      />
-
-      {/* 添加任务表单 */}
-      {showAdd && (
-        <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
-          <input
-            type="text"
-            placeholder="任务名称..."
-            value={newTask.title}
-            onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-            className="w-full text-lg font-medium mb-3 p-2 border-b border-gray-200 focus:border-indigo-500 focus:outline-none"
-            autoFocus
-          />
-          
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">预估时长</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={newTask.estimatedMinutes}
-                  onChange={e => setNewTask(prev => ({ ...prev, estimatedMinutes: Number(e.target.value) }))}
-                  className="w-full p-2 border rounded-lg text-sm"
-                  min="5"
-                  step="5"
-                />
-                <span className="text-sm text-gray-500">分钟</span>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">截止日期</label>
-              <input
-                type="date"
-                value={newTask.deadline}
-                onChange={e => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
-                className="w-full p-2 border rounded-lg text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="text-xs text-gray-500 block mb-1">优先级</label>
-            <div className="flex gap-2">
-              {(['low', 'medium', 'high'] as const).map(p => (
-                <button
-                  key={p}
-                  onClick={() => setNewTask(prev => ({ ...prev, priority: p }))}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    newTask.priority === p 
-                      ? priorityColors[p] + ' ring-2 ring-offset-1 ring-indigo-400'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}
-                >
-                  {p === 'low' ? '低' : p === 'medium' ? '中' : '高'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowAdd(false)}
-              className="flex-1 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              取消
-            </button>
-            <button
-              onClick={handleAdd}
-              className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              添加
-            </button>
+    <div className="min-h-screen bg-[#FFFDF5] pb-28">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 pt-8 pb-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-[#f0426e] text-2xl">pets</span>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Today's Plan</h1>
+            <p className="text-xs text-[#89616b] font-medium opacity-80 uppercase tracking-widest">
+              {new Date().toLocaleDateString('zh-CN', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
           </div>
         </div>
-      )}
+        <button className="bg-white/50 p-2 rounded-full border border-[#F5F2E8] text-[#89616b]">
+          <span className="material-symbols-outlined">calendar_today</span>
+        </button>
+      </header>
 
-      {/* 待完成任务 */}
-      <div className="space-y-3">
+      {/* Progress Card */}
+      <section className="px-6 py-4">
+        <div className="bg-white rounded-xl p-5 border border-[#F5F2E8]/50 soft-shadow">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold">Daily Progress</p>
+              <span className="text-[10px] text-[#f0426e]/60 animate-pulse">❤</span>
+            </div>
+            <p className="text-xs font-medium text-[#89616b]">
+              {completedTasks.length}/{tasks.length} tasks completed
+            </p>
+          </div>
+          <div className="w-full h-2.5 bg-[#F5F2E8] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-[#f0426e] rounded-full transition-all duration-500" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-3 text-[11px] text-[#89616b] font-medium italic">
+            You're doing great! Keep going ♡
+          </p>
+        </div>
+      </section>
+
+      {/* Task List Header */}
+      <div className="px-6 pt-4 pb-2 flex items-center justify-between">
+        <h2 className="text-sm font-bold text-[#181113]/70 uppercase tracking-wider">Priority Tasks</h2>
+        <span className="material-symbols-outlined text-[#f0426e]/40 text-sm">favorite</span>
+      </div>
+
+      {/* Task List */}
+      <main className="flex flex-col gap-3 px-6">
         {incompleteTasks.map(task => (
-          <div key={task.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-start gap-3">
+          <div key={task.id} className="bg-white rounded-xl border border-[#F5F2E8]/30 p-4 flex items-center justify-between soft-shadow">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => toggleComplete(task.id)}
-                className="mt-1 w-5 h-5 rounded-full border-2 border-gray-300 hover:border-indigo-500 flex-shrink-0"
+                className="h-6 w-6 rounded-lg border-2 border-[#f0426e]/20 bg-transparent flex items-center justify-center"
               />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900">{task.title}</h3>
-                <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {task.estimatedMinutes} 分钟
-                  </span>
-                  {task.deadline && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {task.deadline}
-                    </span>
-                  )}
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${priorityColors[task.priority]}`}>
-                    {task.priority === 'low' ? '低' : task.priority === 'medium' ? '中' : '高'}
+              <div>
+                <p className="text-base font-medium leading-tight">{task.title}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] text-[#89616b] font-medium flex items-center gap-0.5">
+                    <span className="material-symbols-outlined text-[14px]">schedule</span>
+                    {formatMinutes(task.estimatedMinutes)}
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="p-1 text-gray-400 hover:text-red-500"
-              >
-                <Trash2 className="w-4 h-4" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1 rounded-full ${priorityStyles[task.priority]}`}>
+                <span className="text-[10px] font-bold uppercase">
+                  {task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}
+                </span>
+              </div>
+              <button onClick={() => deleteTask(task.id)} className="text-[#89616b]/50 hover:text-[#f0426e]">
+                <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
           </div>
         ))}
 
-        {incompleteTasks.length === 0 && !showAdd && (
-          <div className="text-center py-12 text-gray-500">
-            <p className="text-lg mb-2">没有待办任务 ✨</p>
-            <p className="text-sm">点击右上角的 + 添加新任务</p>
+        {/* Completed Tasks */}
+        {completedTasks.map(task => (
+          <div key={task.id} className="bg-white/50 rounded-xl border border-[#F5F2E8]/30 p-4 flex items-center justify-between opacity-60">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => toggleComplete(task.id)}
+                className="h-6 w-6 rounded-lg bg-[#f0426e] flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined text-white text-sm">check</span>
+              </button>
+              <p className="text-base font-medium leading-tight line-through text-[#89616b]">{task.title}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* Empty State */}
+        {tasks.length === 0 && !showAdd && (
+          <div className="mt-8 flex flex-col items-center justify-center py-10 opacity-60">
+            <div className="w-32 h-32 mb-4 bg-[#f0426e]/5 rounded-full flex items-center justify-center overflow-hidden">
+              <img 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBM316xeLC23ZJ6QZj1spZpHVrt2WtKzhQR8ogyEFlrSIP2pS4Tv95zou6u4g1npi768hi3i1MVUE5QenFpquQK-f3FnX3vu5TCWvZbC4nqaqlFmh2YKLpQQSAd_0MPxTK3EVaC8_0EMmYAzOkPe2ROWwTJQEVVt6jNeUEA9UYRaFlBlbYmofzRjcQn6belQ7H1QvNZESOau-vDrj-My7G9otNsaz3ynOk4sdVbCfcIucQ8IN2LSJS4g8smwm9KwR7ilORaqAaBl7I"
+                alt="Cute sleeping cat"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <p className="text-sm font-medium text-[#89616b]">No tasks yet!</p>
+            <p className="text-xs text-[#89616b]/60">Add your first task to get started</p>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* 已完成任务 */}
-      {completedTasks.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-sm font-medium text-gray-500 mb-3">
-            已完成 ({completedTasks.length})
-          </h2>
-          <div className="space-y-2">
-            {completedTasks.slice(0, 5).map(task => (
-              <div key={task.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <button
-                  onClick={() => toggleComplete(task.id)}
-                  className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0"
-                >
-                  <Check className="w-3 h-3 text-white" />
-                </button>
-                <span className="text-gray-500 line-through">{task.title}</span>
+      {/* Add Task Modal */}
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/20 z-50 flex items-end justify-center" onClick={() => setShowAdd(false)}>
+          <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-4">Add New Task ✨</h3>
+            <input
+              type="text"
+              placeholder="What do you need to do?"
+              value={newTask.title}
+              onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full text-lg p-3 border border-[#F5F2E8] rounded-xl mb-3 focus:outline-none focus:border-[#f0426e]"
+              autoFocus
+            />
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="text-xs text-[#89616b] block mb-1">Duration</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={newTask.estimatedMinutes}
+                    onChange={e => setNewTask(prev => ({ ...prev, estimatedMinutes: Number(e.target.value) }))}
+                    className="w-full p-2 border border-[#F5F2E8] rounded-lg text-sm"
+                    min="5"
+                    step="5"
+                  />
+                  <span className="text-sm text-[#89616b]">min</span>
+                </div>
               </div>
-            ))}
+              <div>
+                <label className="text-xs text-[#89616b] block mb-1">Priority</label>
+                <select
+                  value={newTask.priority}
+                  onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))}
+                  className="w-full p-2 border border-[#F5F2E8] rounded-lg text-sm"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAdd(false)}
+                className="flex-1 py-3 text-[#89616b] hover:bg-[#F5F2E8] rounded-xl font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdd}
+                className="flex-1 py-3 bg-[#f0426e] text-white rounded-xl font-bold shadow-lg shadow-[#f0426e]/30"
+              >
+                Add Task
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Floating Add Button */}
+      <button 
+        onClick={() => setShowAdd(true)}
+        className="fixed bottom-24 right-6 bg-[#f0426e] text-white w-14 h-14 rounded-xl shadow-lg shadow-[#f0426e]/30 flex items-center justify-center transition-transform active:scale-90 z-40"
+      >
+        <span className="material-symbols-outlined text-3xl">add</span>
+      </button>
+
+      {/* Decorative Elements */}
+      <div className="fixed top-20 right-4 pointer-events-none opacity-10">
+        <span className="material-symbols-outlined text-[#f0426e] text-4xl">favorite</span>
+      </div>
+      <div className="fixed bottom-40 left-4 pointer-events-none opacity-10">
+        <span className="material-symbols-outlined text-[#f0426e] text-2xl">pets</span>
+      </div>
     </div>
   );
 }

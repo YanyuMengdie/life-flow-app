@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { Send, AlertCircle } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useSettings, useTasks } from '../stores/useStore';
 import type { Message } from '../types';
 import { generateId } from '../utils/storage';
+import { chatWithGemini } from '../utils/gemini';
+import type { GeminiMessage } from '../utils/gemini';
 
 export function ChatPage() {
   const { settings } = useSettings();
-  const { incompleteTasks } = useTasks();
+  const { incompleteTasks, completedTasks } = useTasks();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -28,48 +30,28 @@ export function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  // 本地回复（不需要 API）
-  const generateLocalResponse = (userMessage: string): string => {
-    const lowerMsg = userMessage.toLowerCase();
-    
-    if (lowerMsg.includes('安排') || lowerMsg.includes('计划') || lowerMsg.includes('schedule')) {
-      if (incompleteTasks.length === 0) {
-        return '你现在没有待办任务哦～要不要先去任务页面添加一些？添加好之后我再帮你安排 😊';
-      }
-      
-      const taskList = incompleteTasks.slice(0, 5).map(t => 
-        `• ${t.title}（约 ${t.estimatedMinutes} 分钟）`
-      ).join('\n');
-      
-      return `好的，让我看看你的任务...\n\n你现在有这些待办：\n${taskList}\n\n我建议你可以：\n1. 每完成一个任务后休息 ${settings.breakMinutes} 分钟\n2. 单次专注不要超过 ${settings.maxFocusMinutes} 分钟\n3. 中间穿插一些走动和喝水\n\n你觉得这样可以吗？有什么想调整的随时告诉我～ 💪`;
-    }
-    
-    if (lowerMsg.includes('累') || lowerMsg.includes('tired') || lowerMsg.includes('疲')) {
-      return '听起来你有点累了... 这很正常的，不用勉强自己 💙\n\n要不要先休息一下？可以：\n• 闭眼深呼吸几分钟\n• 听听喜欢的音乐\n• 出去走走透透气\n\n等你准备好了，我们再继续～';
-    }
-    
-    if (lowerMsg.includes('焦虑') || lowerMsg.includes('压力') || lowerMsg.includes('anxious')) {
-      return '我理解你的感受，有压力是很正常的 🤗\n\n试试这样：\n1. 把大任务拆成小步骤\n2. 先做最简单的那一个\n3. 完成一个就给自己点小奖励\n\n不需要一次做完所有事情。一步一步来，你已经做得很好了 ✨';
-    }
-    
-    if (lowerMsg.includes('睡') || lowerMsg.includes('sleep')) {
-      return `根据你的设置，你通常 ${settings.usualBedTime} 睡觉。\n\n良好的睡眠很重要哦～建议睡前一小时：\n• 放下手机\n• 调暗灯光\n• 可以听听轻音乐或白噪音\n\n晚安，好梦 🌙`;
-    }
-    
-    if (lowerMsg.includes('谢') || lowerMsg.includes('thank')) {
-      return '不客气呀～有需要随时找我 😊';
-    }
-    
-    // 默认回复
-    const responses = [
-      '我在听着呢～你想聊聊什么？',
-      '嗯嗯，继续说～',
-      '我明白了。还有什么我可以帮你的吗？',
-      '好的，我记下了。需要我帮你做点什么吗？',
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
+  const systemPrompt = `你是一个温柔、善解人意的生活助手。你的名字叫"Life Flow"。
+
+关于用户：
+${settings.personalNotes ? `用户的个人情况：${settings.personalNotes}` : ''}
+- 通常起床时间：${settings.usualWakeTime}
+- 通常睡觉时间：${settings.usualBedTime}
+- 单次最长专注时间：${settings.maxFocusMinutes} 分钟
+
+用户的任务情况：
+- 待办任务：${incompleteTasks.length} 个
+- 已完成：${completedTasks.length} 个
+${incompleteTasks.length > 0 ? `待办列表：\n${incompleteTasks.slice(0, 5).map(t => `  - ${t.title}（${t.estimatedMinutes}分钟）`).join('\n')}` : ''}
+
+你的性格和原则：
+1. 语气温柔、理解、有同理心
+2. 不施压，尊重用户的感受
+3. 适当鼓励，但不要过度
+4. 如果用户表达负面情绪，先倾听和理解
+5. 给建议时考虑用户的专注力限制
+6. 回复简洁，不要太长
+
+用中文回复。`;
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -85,9 +67,32 @@ export function ChatPage() {
     setInput('');
     setIsLoading(true);
 
-    // 模拟打字延迟
-    setTimeout(() => {
-      const response = generateLocalResponse(userMessage.content);
+    try {
+      if (!settings.geminiApiKey) {
+        // 没有 API Key，使用本地回复
+        setTimeout(() => {
+          const response = generateLocalResponse(userMessage.content);
+          const assistantMessage: Message = {
+            id: generateId(),
+            role: 'assistant',
+            content: response,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsLoading(false);
+        }, 500);
+        return;
+      }
+
+      // 使用 Gemini API
+      const history: GeminiMessage[] = messages.slice(-10).map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      history.push({ role: 'user', parts: [{ text: userMessage.content }] });
+
+      const response = await chatWithGemini(settings.geminiApiKey, history, systemPrompt);
+      
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',
@@ -95,14 +100,42 @@ export function ChatPage() {
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (e) {
+      const errorMessage: Message = {
+        id: generateId(),
+        role: 'assistant',
+        content: '抱歉，出了点问题... ' + (e instanceof Error ? e.message : '请稍后再试'),
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 500 + Math.random() * 1000);
+    }
+  };
+
+  // 本地回复（没有 API Key 时的降级方案）
+  const generateLocalResponse = (userMessage: string): string => {
+    const lowerMsg = userMessage.toLowerCase();
+    
+    if (lowerMsg.includes('安排') || lowerMsg.includes('计划')) {
+      return '建议你去「安排」页面，让 AI 帮你生成今天的计划～那里可以更详细地讨论和调整 😊';
+    }
+    
+    if (lowerMsg.includes('累') || lowerMsg.includes('疲')) {
+      return '听起来你有点累了... 这很正常的，不用勉强自己 💙\n\n要不要先休息一下？';
+    }
+    
+    if (lowerMsg.includes('焦虑') || lowerMsg.includes('压力')) {
+      return '我理解你的感受，有压力是很正常的 🤗\n\n一步一步来，你已经做得很好了 ✨';
+    }
+    
+    return '💡 提示：在设置页面填写 Gemini API Key 后，我会变得更聪明哦～';
   };
 
   const quickActions = [
     { label: '帮我安排今天', message: '帮我安排一下今天的任务吧' },
     { label: '我有点累', message: '我感觉有点累了...' },
-    { label: '睡眠建议', message: '有什么睡眠建议吗？' },
+    { label: '聊聊心情', message: '我想聊聊最近的心情' },
   ];
 
   return (
@@ -110,9 +143,16 @@ export function ChatPage() {
       <div className="p-4 border-b bg-white">
         <PageHeader 
           title="AI 助手" 
-          subtitle="温柔倾听，智慧建议"
+          subtitle={settings.geminiApiKey ? "由 Gemini 驱动" : "本地模式（功能有限）"}
         />
       </div>
+
+      {!settings.geminiApiKey && (
+        <div className="px-4 py-2 bg-yellow-50 border-b border-yellow-100 flex items-center gap-2 text-sm text-yellow-700">
+          <AlertCircle className="w-4 h-4" />
+          <span>在设置中填写 Gemini API Key 可解锁完整 AI 功能</span>
+        </div>
+      )}
 
       {/* 消息列表 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32">

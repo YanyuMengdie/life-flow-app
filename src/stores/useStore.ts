@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Task, SleepRecord, UserSettings, Habit, HabitLog } from '../types';
+import type { Task, SleepRecord, UserSettings, Habit, HabitLog, TodaySchedule } from '../types';
 import { getItem, setItem, getItemSync, generateId, formatDate } from '../utils/storage';
 
 // 默认设置
@@ -9,6 +9,7 @@ const defaultSettings: UserSettings = {
   maxFocusMinutes: 45,
   breakMinutes: 15,
   personalNotes: '',
+  geminiApiKey: '',
 };
 
 // ===== 任务 Store =====
@@ -186,4 +187,49 @@ export function useHabits() {
   }, [logs]);
 
   return { habits, logs, addHabit, deleteHabit, toggleHabitLog, isHabitCompleted };
+}
+
+// ===== 今日安排 Store =====
+export function useTodaySchedule() {
+  const [schedule, setSchedule] = useState<TodaySchedule | null>(() => getItemSync('todaySchedule', null));
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    getItem<TodaySchedule | null>('todaySchedule', null).then(data => {
+      // 检查是否是今天的安排
+      const today = formatDate();
+      if (data && data.date === today) {
+        setSchedule(data);
+      } else {
+        setSchedule(null);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      setItem('todaySchedule', schedule);
+    }
+  }, [schedule, loaded]);
+
+  const saveSchedule = useCallback((content: string) => {
+    const newSchedule: TodaySchedule = {
+      date: formatDate(),
+      content,
+      confirmed: false,
+      createdAt: new Date().toISOString(),
+    };
+    setSchedule(newSchedule);
+  }, []);
+
+  const confirmSchedule = useCallback(() => {
+    setSchedule(prev => prev ? { ...prev, confirmed: true } : null);
+  }, []);
+
+  const clearSchedule = useCallback(() => {
+    setSchedule(null);
+  }, []);
+
+  return { schedule, saveSchedule, confirmSchedule, clearSchedule };
 }

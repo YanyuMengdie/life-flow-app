@@ -68,7 +68,15 @@ export interface UserSettings {
   personalNotes: string;
   
   // AI 相关
-  aiApiKey?: string;
+  geminiApiKey?: string;
+}
+
+// 今日安排
+export interface TodaySchedule {
+  date: string; // YYYY-MM-DD
+  content: string; // AI 生成的安排文本
+  confirmed: boolean;
+  createdAt: string;
 }
 
 // AI 对话消息

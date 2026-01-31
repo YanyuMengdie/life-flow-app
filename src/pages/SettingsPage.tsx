@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, Brain, User, Save, Check } from 'lucide-react';
+import { Clock, Brain, User, Save, Check, Key } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useSettings, useHabits } from '../stores/useStore';
 
@@ -184,6 +184,28 @@ export function SettingsPage() {
           >
             添加
           </button>
+        </div>
+      </section>
+
+      {/* Gemini API Key */}
+      <section className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Key className="w-5 h-5 text-indigo-600" />
+          <h2 className="font-medium">Gemini API</h2>
+        </div>
+        
+        <div>
+          <label className="text-sm text-gray-500 block mb-1">API Key</label>
+          <input
+            type="password"
+            value={settings.geminiApiKey || ''}
+            onChange={e => updateSettings({ geminiApiKey: e.target.value })}
+            placeholder="AIzaSy..."
+            className="w-full p-2 border rounded-lg text-sm font-mono"
+          />
+          <p className="text-xs text-gray-400 mt-2">
+            从 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" className="text-indigo-500 underline">Google AI Studio</a> 获取免费的 API Key
+          </p>
         </div>
       </section>
 

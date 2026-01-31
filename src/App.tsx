@@ -8,7 +8,7 @@ import { SettingsPage } from './pages/SettingsPage';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/life-flow-app">
       <div className="min-h-screen bg-gray-50">
         <Routes>
           <Route path="/" element={<TasksPage />} />

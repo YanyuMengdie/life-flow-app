@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Moon, Sun, Plus, TrendingUp } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useSleepRecords } from '../stores/useStore';
-import { formatDate, formatTime } from '../utils/storage';
+import { formatDate } from '../utils/storage';
 
 export function SleepPage() {
   const { records, addRecord, updateRecord, getTodayRecord, getWeekRecords } = useSleepRecords();

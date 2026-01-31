@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, Clock, Calendar, Check, Trash2 } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useTasks } from '../stores/useStore';
-import { Task } from '../types';
+import type { Task } from '../types';
 
 export function TasksPage() {
   const { incompleteTasks, completedTasks, addTask, toggleComplete, deleteTask } = useTasks();

@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, AlertCircle } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useSettings, useTasks } from '../stores/useStore';
-import { Message } from '../types';
+import type { Message } from '../types';
 import { generateId } from '../utils/storage';
 
 export function ChatPage() {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, SleepRecord, UserSettings, Habit, HabitLog } from '../types';
+import type { Task, SleepRecord, UserSettings, Habit, HabitLog } from '../types';
 import { getItem, setItem, generateId, formatDate } from '../utils/storage';
 
 // 默认设置

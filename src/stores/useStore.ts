@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Task, SleepRecord, UserSettings, Habit, HabitLog } from '../types';
-import { getItem, setItem, generateId, formatDate } from '../utils/storage';
+import { getItem, setItem, getItemSync, generateId, formatDate } from '../utils/storage';
 
 // 默认设置
 const defaultSettings: UserSettings = {
@@ -13,11 +13,25 @@ const defaultSettings: UserSettings = {
 
 // ===== 任务 Store =====
 export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>(() => getItem('tasks', []));
+  const [tasks, setTasks] = useState<Task[]>(() => getItemSync('tasks', []));
+  const [loaded, setLoaded] = useState(false);
 
+  // 从 IndexedDB 加载
   useEffect(() => {
-    setItem('tasks', tasks);
-  }, [tasks]);
+    getItem<Task[]>('tasks', []).then(data => {
+      if (data.length > 0 || !loaded) {
+        setTasks(data);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  // 保存到 IndexedDB
+  useEffect(() => {
+    if (loaded) {
+      setItem('tasks', tasks);
+    }
+  }, [tasks, loaded]);
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'completed' | 'createdAt'>) => {
     const newTask: Task = {
@@ -49,16 +63,28 @@ export function useTasks() {
   const incompleteTasks = tasks.filter(t => !t.completed);
   const completedTasks = tasks.filter(t => t.completed);
 
-  return { tasks, incompleteTasks, completedTasks, addTask, updateTask, deleteTask, toggleComplete };
+  return { tasks, incompleteTasks, completedTasks, addTask, updateTask, deleteTask, toggleComplete, loaded };
 }
 
 // ===== 睡眠记录 Store =====
 export function useSleepRecords() {
-  const [records, setRecords] = useState<SleepRecord[]>(() => getItem('sleepRecords', []));
+  const [records, setRecords] = useState<SleepRecord[]>(() => getItemSync('sleepRecords', []));
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setItem('sleepRecords', records);
-  }, [records]);
+    getItem<SleepRecord[]>('sleepRecords', []).then(data => {
+      if (data.length > 0 || !loaded) {
+        setRecords(data);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      setItem('sleepRecords', records);
+    }
+  }, [records, loaded]);
 
   const addRecord = useCallback((record: Omit<SleepRecord, 'id'>) => {
     const newRecord: SleepRecord = { ...record, id: generateId() };
@@ -87,12 +113,22 @@ export function useSleepRecords() {
 // ===== 设置 Store =====
 export function useSettings() {
   const [settings, setSettings] = useState<UserSettings>(() => 
-    getItem('settings', defaultSettings)
+    getItemSync('settings', defaultSettings)
   );
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setItem('settings', settings);
-  }, [settings]);
+    getItem<UserSettings>('settings', defaultSettings).then(data => {
+      setSettings(data);
+      setLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      setItem('settings', settings);
+    }
+  }, [settings, loaded]);
 
   const updateSettings = useCallback((updates: Partial<UserSettings>) => {
     setSettings(prev => ({ ...prev, ...updates }));
@@ -103,11 +139,23 @@ export function useSettings() {
 
 // ===== 习惯 Store =====
 export function useHabits() {
-  const [habits, setHabits] = useState<Habit[]>(() => getItem('habits', []));
-  const [logs, setLogs] = useState<HabitLog[]>(() => getItem('habitLogs', []));
+  const [habits, setHabits] = useState<Habit[]>(() => getItemSync('habits', []));
+  const [logs, setLogs] = useState<HabitLog[]>(() => getItemSync('habitLogs', []));
+  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => { setItem('habits', habits); }, [habits]);
-  useEffect(() => { setItem('habitLogs', logs); }, [logs]);
+  useEffect(() => {
+    Promise.all([
+      getItem<Habit[]>('habits', []),
+      getItem<HabitLog[]>('habitLogs', [])
+    ]).then(([h, l]) => {
+      setHabits(h);
+      setLogs(l);
+      setLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => { if (loaded) setItem('habits', habits); }, [habits, loaded]);
+  useEffect(() => { if (loaded) setItem('habitLogs', logs); }, [logs, loaded]);
 
   const addHabit = useCallback((habit: Omit<Habit, 'id'>) => {
     const newHabit: Habit = { ...habit, id: generateId() };

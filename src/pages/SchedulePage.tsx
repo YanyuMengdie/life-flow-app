@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTasks, useSettings, useTodaySchedule } from '../stores/useStore';
-import { formatDate } from '../utils/storage';
 import { generateScheduleWithAI, chatWithGemini } from '../utils/gemini';
 import type { GeminiMessage } from '../utils/gemini';
 

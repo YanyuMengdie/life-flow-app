@@ -5,7 +5,7 @@ import { formatDate } from '../utils/storage';
 const BUNNY_IMAGE = "https://lh3.googleusercontent.com/aida-public/AB6AXuAShjof-e5yAk5fIURjjKL0v93uTZahA_oRqopBzvQTXhLNA6j33Hg3Idn7Itbnb8VDK6NHI75e_eC2cwWI8E-gV_KPH0FgJ87PJ1pd_AmuSUk6qljFv1-3oYyP-5wFIMm1gpAdbv3CsH_pO09cQTsHdRC3_0bMA29zGzxOcYzdhbu_Rg_VyeWgtqY2HN7uAdwf6me6HWhGa4Y8FboZ6vE5P6FcCThnoLImVgaZsMJDhyczkyoV0X583WoGjfIHVA7J-b33WM3aIi4";
 
 export function SleepPage() {
-  const { records, addRecord, updateRecord, getTodayRecord, getWeekRecords } = useSleepRecords();
+  const { addRecord, updateRecord, getTodayRecord, getWeekRecords } = useSleepRecords();
   const [showAdd, setShowAdd] = useState(false);
   const [newRecord, setNewRecord] = useState({
     bedTime: '',

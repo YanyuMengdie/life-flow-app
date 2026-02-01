@@ -148,15 +148,15 @@ export function TasksPage() {
 
       {/* Add Task Modal */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/20 z-50 flex items-end justify-center" onClick={() => setShowAdd(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-start justify-center pt-20" onClick={() => setShowAdd(false)}>
+          <div className="bg-white rounded-2xl w-[90%] max-w-md p-5 shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-4 text-center">添加新任务 ✨</h3>
             <input
               type="text"
               placeholder="你想做什么？"
               value={newTask.title}
               onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full text-lg p-3 border border-[#F5F2E8] rounded-xl mb-4 focus:outline-none focus:border-[#f0426e]"
+              className="w-full text-base p-3 border border-[#F5F2E8] rounded-xl mb-3 focus:outline-none focus:border-[#f0426e]"
               autoFocus
             />
             

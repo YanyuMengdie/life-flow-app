@@ -14,7 +14,7 @@ export function ChatPage() {
     {
       id: '1',
       role: 'assistant',
-      content: 'Good morning! ✨ Ready to organize your day? I\'ve already pulled up your list.',
+      content: '早上好呀～ ✨ 我是小糯，你的生活小助手。有什么我可以帮你的吗？',
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -30,7 +30,7 @@ export function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const systemPrompt = `你是一个可爱、温柔、善解人意的生活助手，名叫 Mochi（一只可爱的小猫）。
+  const systemPrompt = `你是一个可爱、温柔、善解人意的生活助手，名叫"小糯"（一只可爱的小猫）。
 
 用户情况：
 ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
@@ -45,7 +45,7 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
 2. 像朋友一样关心用户
 3. 不施压，理解用户的困难
 4. 给建议时简洁实用
-5. 用中文回复`;
+5. 用中文回复，语气亲切`;
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -64,11 +64,10 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
     try {
       if (!settings.geminiApiKey) {
         setTimeout(() => {
-          const response = '💡 在设置页面填写 Gemini API Key 后，我会变得更聪明哦～';
           setMessages(prev => [...prev, {
             id: generateId(),
             role: 'assistant',
-            content: response,
+            content: '💡 在「我的」页面填写 Gemini API Key 后，我会变得更聪明哦～',
             timestamp: new Date().toISOString(),
           }]);
           setIsLoading(false);
@@ -103,9 +102,9 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
   };
 
   const quickActions = [
-    { icon: 'bolt', label: 'Focus mode', message: '帮我开始专注模式' },
-    { icon: 'checklist', label: 'Plan my day', message: '帮我规划今天' },
-    { icon: 'auto_awesome', label: 'Daily Quote', message: '给我一句励志的话' },
+    { label: '帮我安排今天', message: '帮我安排一下今天的任务吧' },
+    { label: '有点累了', message: '我感觉有点累了...' },
+    { label: '聊聊心情', message: '我想聊聊最近的心情' },
   ];
 
   const formatTime = (timestamp: string) => {
@@ -119,45 +118,32 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div 
-                className="w-10 h-10 rounded-full border-2 border-[#f0426e]/20 bg-cover bg-center"
-                style={{ backgroundImage: `url('${MOCHI_AVATAR}')` }}
-              />
+              <img src={MOCHI_AVATAR} alt="小糯" className="w-11 h-11 rounded-full border-2 border-[#f0426e]/20 object-cover" />
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full" />
             </div>
             <div>
-              <h1 className="text-base font-bold leading-tight">Mochi</h1>
-              <p className="text-[#89616b] text-xs">Your AI Companion</p>
+              <h1 className="text-base font-bold leading-tight">小糯</h1>
+              <p className="text-[#89616b] text-xs">你的 AI 小助手</p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <button className="p-2 text-[#f0426e]">
-              <span className="material-symbols-outlined">favorite</span>
-            </button>
-          </div>
+          <button className="p-2 text-[#f0426e]">
+            <span className="material-symbols-outlined">favorite</span>
+          </button>
         </div>
       </header>
 
       {/* Messages */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-40">
-        {/* Decorative Stars */}
-        <div className="absolute top-20 right-10 text-[#f0426e]/10 pointer-events-none">
-          <span className="material-symbols-outlined text-2xl">star</span>
-        </div>
-
+      <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-44">
         {messages.map(msg => (
           <div key={msg.id} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'assistant' && (
-              <div 
-                className="w-8 h-8 rounded-full bg-cover bg-center shrink-0 mb-1 border border-pink-100"
-                style={{ backgroundImage: `url('${MOCHI_AVATAR}')` }}
-              />
+              <img src={MOCHI_AVATAR} alt="小糯" className="w-8 h-8 rounded-full border border-pink-100 object-cover mb-5" />
             )}
             <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[80%]`}>
               <div className={`rounded-2xl px-4 py-3 ${
                 msg.role === 'user'
-                  ? 'bg-[#f0426e] text-white rounded-br-none shadow-md'
-                  : 'bg-[#fcf5f1] text-[#181113] rounded-bl-none shadow-sm border border-pink-50/50'
+                  ? 'bg-[#f0426e] text-white rounded-br-sm shadow-md'
+                  : 'bg-white text-[#181113] rounded-bl-sm shadow-sm border border-pink-50/50'
               }`}>
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
               </div>
@@ -168,11 +154,8 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
 
         {isLoading && (
           <div className="flex items-end gap-2">
-            <div 
-              className="w-8 h-8 rounded-full bg-cover bg-center shrink-0 mb-1 border border-pink-100"
-              style={{ backgroundImage: `url('${MOCHI_AVATAR}')` }}
-            />
-            <div className="bg-[#fcf5f1] rounded-2xl rounded-bl-none px-4 py-3 shadow-sm">
+            <img src={MOCHI_AVATAR} alt="小糯" className="w-8 h-8 rounded-full border border-pink-100 object-cover mb-5" />
+            <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-pink-50/50">
               <div className="flex gap-1">
                 <span className="animate-bounce text-[#f0426e]">·</span>
                 <span className="animate-bounce text-[#f0426e]" style={{ animationDelay: '0.1s' }}>·</span>
@@ -193,9 +176,8 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
               <button
                 key={action.label}
                 onClick={() => setInput(action.message)}
-                className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl bg-white border border-pink-100 text-[#181113] px-4 text-sm font-medium shadow-sm active:scale-95 transition-transform"
+                className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-full bg-white border border-pink-100 text-[#181113] px-4 text-sm font-medium shadow-sm active:scale-95 transition-transform"
               >
-                <span className="material-symbols-outlined text-[#f0426e] text-sm">{action.icon}</span>
                 {action.label}
               </button>
             ))}
@@ -206,31 +188,23 @@ ${settings.personalNotes ? `个人备注：${settings.personalNotes}` : ''}
       {/* Input */}
       <footer className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t border-pink-100">
         <div className="flex items-center gap-3 max-w-md mx-auto">
-          <button className="flex items-center justify-center w-10 h-10 shrink-0 rounded-full bg-[#fcf5f1] text-[#f0426e]">
-            <span className="material-symbols-outlined">add</span>
-          </button>
           <div className="flex-1 relative">
-            <div className="flex items-center w-full min-h-[48px] bg-[#fcf5f1] rounded-2xl px-4 border border-transparent focus-within:border-[#f0426e]/30 transition-all">
+            <div className="flex items-center w-full min-h-[48px] bg-[#fcf5f1] rounded-full px-4 border border-transparent focus-within:border-[#f0426e]/30 transition-all">
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Talk to Mochi..."
+                placeholder="和小糯聊聊..."
                 className="flex-1 bg-transparent border-none focus:ring-0 text-base placeholder:text-[#89616b]/60 p-0"
               />
-              <div className="flex items-center gap-2">
-                <button className="text-[#89616b] hover:text-[#f0426e] transition-colors">
-                  <span className="material-symbols-outlined">mood</span>
-                </button>
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="bg-[#f0426e] text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg shadow-[#f0426e]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-xl">arrow_upward</span>
-                </button>
-              </div>
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading}
+                className="bg-[#f0426e] text-white w-9 h-9 rounded-full flex items-center justify-center shadow-lg shadow-[#f0426e]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 ml-2"
+              >
+                <span className="material-symbols-outlined text-xl">arrow_upward</span>
+              </button>
             </div>
           </div>
         </div>

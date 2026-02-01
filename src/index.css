@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 :root {
   --color-primary: #f0426e;
@@ -8,9 +6,6 @@
   --color-beige: #F5F2E8;
   --color-pink-soft: #FFE4E8;
   --color-lavender: #E6E6FA;
-  --color-pastel-pink: #FDE2E4;
-  --color-pastel-mint: #E2F0CB;
-  --color-pastel-peach: #FFDAC1;
   --color-text: #181113;
   --color-text-muted: #89616b;
 }
@@ -18,7 +13,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: 'Spline Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
   -webkit-tap-highlight-color: transparent;
@@ -26,31 +21,35 @@ body {
 
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
 }
 
-/* 自定义复选框 */
-.checkbox-custom:checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+.soft-shadow {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
 }
 
-/* 隐藏滚动条但保持滚动功能 */
+.ios-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-/* 柔和阴影 */
-.soft-shadow {
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
-}
-
-/* iOS 风格模糊 */
-.ios-blur {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }

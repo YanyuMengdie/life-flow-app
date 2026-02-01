@@ -22,40 +22,34 @@ export function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#f9f6f2] pb-28">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#f9f6f2]/80 ios-blur px-4 py-4 flex items-center justify-between">
-        <div className="w-10 h-10 flex items-center justify-start">
-          <span className="material-symbols-outlined text-[#f0426e] text-2xl">arrow_back_ios</span>
-        </div>
-        <h1 className="text-lg font-bold tracking-tight">App Settings</h1>
-        <div className="w-10 h-10 flex items-center justify-end">
-          <span className="material-symbols-outlined text-[#f0426e] text-2xl">pets</span>
-        </div>
+      <header className="sticky top-0 z-50 bg-[#f9f6f2]/80 ios-blur px-4 py-4 flex items-center justify-center">
+        <h1 className="text-lg font-bold">设置</h1>
       </header>
 
       <main className="px-4 space-y-6">
         {/* Schedule Preferences */}
         <section>
           <div className="flex items-center gap-2 px-2 pb-2 pt-4">
-            <span className="material-symbols-outlined text-[#f0426e] text-sm">pets</span>
-            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">Schedule Preferences</h3>
+            <span className="material-symbols-outlined text-[#f0426e] text-lg">schedule</span>
+            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">作息时间</h3>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden soft-shadow border border-pink-100/30">
+          <div className="bg-white rounded-2xl overflow-hidden soft-shadow border border-pink-100/30">
             <div className="flex items-center gap-4 px-4 py-4 border-b border-[#f9f6f2]">
-              <p className="text-base font-normal flex-1">Wake Up Time</p>
+              <p className="text-base font-normal flex-1">起床时间</p>
               <input
                 type="time"
                 value={settings.usualWakeTime}
                 onChange={e => updateSettings({ usualWakeTime: e.target.value })}
-                className="text-[#89616b] text-sm bg-transparent border-none focus:ring-0 text-right"
+                className="text-[#f0426e] text-sm font-semibold bg-transparent border-none focus:ring-0 text-right"
               />
             </div>
             <div className="flex items-center gap-4 px-4 py-4">
-              <p className="text-base font-normal flex-1">Bedtime</p>
+              <p className="text-base font-normal flex-1">睡觉时间</p>
               <input
                 type="time"
                 value={settings.usualBedTime}
                 onChange={e => updateSettings({ usualBedTime: e.target.value })}
-                className="text-[#89616b] text-sm bg-transparent border-none focus:ring-0 text-right"
+                className="text-[#f0426e] text-sm font-semibold bg-transparent border-none focus:ring-0 text-right"
               />
             </div>
           </div>
@@ -64,14 +58,14 @@ export function SettingsPage() {
         {/* Focus Mode */}
         <section>
           <div className="flex items-center gap-2 px-2 pb-2">
-            <span className="material-symbols-outlined text-[#f0426e] text-sm">pets</span>
-            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">Focus Mode</h3>
+            <span className="material-symbols-outlined text-[#f0426e] text-lg">psychology</span>
+            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">专注模式</h3>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden soft-shadow border border-pink-100/30 p-4 space-y-4">
+          <div className="bg-white rounded-2xl overflow-hidden soft-shadow border border-pink-100/30 p-4 space-y-5">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <p className="text-sm text-[#89616b]">Max Focus Duration</p>
-                <p className="text-sm font-bold text-[#f0426e]">{settings.maxFocusMinutes} min</p>
+                <p className="text-sm text-[#89616b]">最长专注时间</p>
+                <p className="text-sm font-bold text-[#f0426e]">{settings.maxFocusMinutes} 分钟</p>
               </div>
               <input
                 type="range"
@@ -80,13 +74,13 @@ export function SettingsPage() {
                 step="5"
                 value={settings.maxFocusMinutes}
                 onChange={e => updateSettings({ maxFocusMinutes: Number(e.target.value) })}
-                className="w-full h-1.5 bg-[#F5F2E8] rounded-full appearance-none cursor-pointer accent-[#f0426e]"
+                className="w-full h-2 bg-[#F5F2E8] rounded-full appearance-none cursor-pointer accent-[#f0426e]"
               />
             </div>
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <p className="text-sm text-[#89616b]">Break Duration</p>
-                <p className="text-sm font-bold text-[#f0426e]">{settings.breakMinutes} min</p>
+                <p className="text-sm text-[#89616b]">休息时长</p>
+                <p className="text-sm font-bold text-[#f0426e]">{settings.breakMinutes} 分钟</p>
               </div>
               <input
                 type="range"
@@ -95,7 +89,7 @@ export function SettingsPage() {
                 step="5"
                 value={settings.breakMinutes}
                 onChange={e => updateSettings({ breakMinutes: Number(e.target.value) })}
-                className="w-full h-1.5 bg-[#F5F2E8] rounded-full appearance-none cursor-pointer accent-[#f0426e]"
+                className="w-full h-2 bg-[#F5F2E8] rounded-full appearance-none cursor-pointer accent-[#f0426e]"
               />
             </div>
           </div>
@@ -104,18 +98,18 @@ export function SettingsPage() {
         {/* Personal Notes */}
         <section>
           <div className="flex items-center gap-2 px-2 pb-2">
-            <span className="material-symbols-outlined text-[#f0426e] text-sm">pets</span>
-            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">Personal Notes</h3>
+            <span className="material-symbols-outlined text-[#f0426e] text-lg">edit_note</span>
+            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">关于我</h3>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden soft-shadow border border-pink-100/30 p-4">
+          <div className="bg-white rounded-2xl overflow-hidden soft-shadow border border-pink-100/30 p-4">
             <textarea
               value={settings.personalNotes}
               onChange={e => updateSettings({ personalNotes: e.target.value })}
-              placeholder="Tell your AI friend about yourself...&#10;• I get anxious easily&#10;• I prefer mornings&#10;• I need breaks"
-              className="w-full p-3 bg-[#f9f6f2]/50 border-none rounded-lg text-sm min-h-[100px] resize-none focus:ring-1 focus:ring-[#f0426e]/30"
+              placeholder="告诉 AI 一些关于你的事情...&#10;• 我容易焦虑&#10;• 我喜欢早上工作&#10;• 我需要经常休息"
+              className="w-full p-3 bg-[#f9f6f2]/50 border-none rounded-xl text-sm min-h-[100px] resize-none focus:ring-1 focus:ring-[#f0426e]/30 placeholder:text-[#89616b]/50"
             />
             <p className="text-[11px] text-[#89616b]/60 mt-2 italic">
-              This helps your AI companion understand you better 💕
+              这些信息会帮助 AI 更好地理解你 💕
             </p>
           </div>
         </section>
@@ -123,25 +117,25 @@ export function SettingsPage() {
         {/* Daily Habits */}
         <section>
           <div className="flex items-center gap-2 px-2 pb-2">
-            <span className="material-symbols-outlined text-[#f0426e] text-sm">pets</span>
-            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">Daily Habits</h3>
+            <span className="material-symbols-outlined text-[#f0426e] text-lg">check_circle</span>
+            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">每日习惯</h3>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden soft-shadow border border-pink-100/30 p-4">
+          <div className="bg-white rounded-2xl overflow-hidden soft-shadow border border-pink-100/30 p-4">
             {habits.length === 0 ? (
               <p className="text-sm text-[#89616b]/60 text-center py-4 italic">
-                No habits yet. Add one to track! 🌱
+                还没有设置习惯，添加一个试试？🌱
               </p>
             ) : (
               <div className="space-y-2 mb-4">
                 {habits.map(habit => (
-                  <div key={habit.id} className="flex items-center justify-between p-3 bg-[#f9f6f2]/50 rounded-lg">
+                  <div key={habit.id} className="flex items-center justify-between p-3 bg-[#f9f6f2]/50 rounded-xl">
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => toggleHabitLog(habit.id)}
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                           isHabitCompleted(habit.id)
                             ? 'bg-[#f0426e] border-[#f0426e]'
-                            : 'border-[#f0426e]/30'
+                            : 'border-[#f0426e]/30 hover:border-[#f0426e]'
                         }`}
                       >
                         {isHabitCompleted(habit.id) && (
@@ -154,7 +148,7 @@ export function SettingsPage() {
                     </div>
                     <button
                       onClick={() => deleteHabit(habit.id)}
-                      className="text-[#89616b]/40 hover:text-[#f0426e] text-sm"
+                      className="text-[#89616b]/40 hover:text-[#f0426e] p-1"
                     >
                       <span className="material-symbols-outlined text-lg">close</span>
                     </button>
@@ -168,14 +162,14 @@ export function SettingsPage() {
                 value={newHabit}
                 onChange={e => setNewHabit(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAddHabit()}
-                placeholder="Add new habit..."
-                className="flex-1 p-2 bg-[#f9f6f2]/50 border-none rounded-lg text-sm focus:ring-1 focus:ring-[#f0426e]/30"
+                placeholder="添加新习惯..."
+                className="flex-1 p-2.5 bg-[#f9f6f2]/50 border-none rounded-xl text-sm focus:ring-1 focus:ring-[#f0426e]/30"
               />
               <button
                 onClick={handleAddHabit}
-                className="px-4 py-2 bg-[#f0426e] text-white rounded-lg text-sm font-bold"
+                className="px-4 py-2 bg-[#f0426e] text-white rounded-xl text-sm font-bold"
               >
-                Add
+                添加
               </button>
             </div>
           </div>
@@ -184,10 +178,10 @@ export function SettingsPage() {
         {/* API Key */}
         <section>
           <div className="flex items-center gap-2 px-2 pb-2">
-            <span className="material-symbols-outlined text-[#f0426e] text-sm">pets</span>
-            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">Integrations</h3>
+            <span className="material-symbols-outlined text-[#f0426e] text-lg">key</span>
+            <h3 className="text-[#f0426e] text-xs font-bold uppercase tracking-widest">API 设置</h3>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden soft-shadow border border-pink-100/30 p-4">
+          <div className="bg-white rounded-2xl overflow-hidden soft-shadow border border-pink-100/30 p-4">
             <p className="text-sm font-medium mb-2">Gemini API Key</p>
             <div className="relative">
               <input
@@ -195,24 +189,23 @@ export function SettingsPage() {
                 value={settings.geminiApiKey || ''}
                 onChange={e => updateSettings({ geminiApiKey: e.target.value })}
                 placeholder="AIzaSy..."
-                className="w-full bg-[#f9f6f2]/50 border-none rounded-lg text-sm font-mono py-3 pl-3 pr-20 focus:ring-1 focus:ring-[#f0426e]/30"
+                className="w-full bg-[#f9f6f2]/50 border-none rounded-xl text-sm font-mono py-3 pl-3 pr-16 focus:ring-1 focus:ring-[#f0426e]/30"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                <button 
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="p-1.5 hover:bg-[#f0426e]/10 rounded text-[#f0426e]"
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    {showApiKey ? 'visibility_off' : 'visibility'}
-                  </span>
-                </button>
-              </div>
+              <button 
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-[#f0426e]/10 rounded text-[#f0426e]"
+              >
+                <span className="material-symbols-outlined text-xl">
+                  {showApiKey ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
             <p className="mt-3 text-[11px] text-[#89616b]/60 italic">
-              Get your free API key from{' '}
+              从{' '}
               <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" className="text-[#f0426e] underline">
                 Google AI Studio
               </a>
+              {' '}免费获取
             </p>
           </div>
         </section>
@@ -220,29 +213,27 @@ export function SettingsPage() {
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className="w-full py-4 bg-[#f0426e] text-white rounded-xl font-bold text-lg shadow-xl shadow-[#f0426e]/25 flex items-center justify-center gap-2"
+          className="w-full py-4 bg-[#f0426e] text-white rounded-2xl font-bold text-lg shadow-xl shadow-[#f0426e]/25 flex items-center justify-center gap-2"
         >
           {saved ? (
             <>
               <span className="material-symbols-outlined">check</span>
-              Saved!
+              已保存！
             </>
           ) : (
             <>
               <span className="material-symbols-outlined">save</span>
-              Save Settings
+              保存设置
             </>
           )}
         </button>
 
         {/* Footer */}
-        <footer className="pt-6 pb-8 flex flex-col items-center justify-center space-y-3 opacity-60">
-          <div className="w-16 h-16 bg-[#f0426e]/10 rounded-full flex items-center justify-center">
-            <span className="material-symbols-outlined text-[#f0426e] text-4xl">pets</span>
-          </div>
+        <footer className="pt-6 pb-8 flex flex-col items-center justify-center space-y-3 opacity-50">
+          <span className="material-symbols-outlined text-[#f0426e] text-4xl">pets</span>
           <div className="text-center">
-            <p className="text-xs font-bold text-[#89616b] tracking-widest uppercase">Life Flow v1.0</p>
-            <p className="text-[10px] text-[#89616b] mt-1 italic">Made with love 💕</p>
+            <p className="text-xs font-bold text-[#89616b]">Life Flow v1.0</p>
+            <p className="text-[10px] text-[#89616b] mt-1 italic">用爱制作 💕</p>
           </div>
         </footer>
       </main>
